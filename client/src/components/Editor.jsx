@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import * as Y from 'yjs';
@@ -6,13 +6,13 @@ import { WebsocketProvider } from 'y-websocket';
 import { QuillBinding } from 'y-quill';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import useStore from '../store/useStore';
 import { stringToColor } from '../utils/colorUtils';
 import ShareModal from './ShareModal';
 
 const Editor = () => {
     const { id } = useParams();
-    const { user } = useContext(AuthContext);
+    const { user, token } = useStore();
     const navigate = useNavigate();
     const editorRef = useRef(null);
     const [status, setStatus] = useState('Connecting...');
@@ -23,7 +23,6 @@ const Editor = () => {
     useEffect(() => {
         const checkAccess = async () => {
             try {
-                const token = localStorage.getItem('token');
                 const res = await axios.get(`http://localhost:5000/api/documents/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -38,8 +37,8 @@ const Editor = () => {
                 }
             }
         };
-        checkAccess();
-    }, [id, navigate]);
+        if (token) checkAccess();
+    }, [id, navigate, token]);
 
     useEffect(() => {
         if (!editorRef.current || !user) return;
@@ -88,7 +87,6 @@ const Editor = () => {
 
     const handleShare = async (email) => {
         try {
-            const token = localStorage.getItem('token');
             await axios.post(`http://localhost:5000/api/documents/${id}/share`, { email }, {
                 headers: { Authorization: `Bearer ${token}` }
             });

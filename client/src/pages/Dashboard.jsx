@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import React, { useEffect } from 'react';
+import useStore from '../store/useStore';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 const Dashboard = () => {
-    const { user, logout } = useContext(AuthContext);
-    const [documents, setDocuments] = useState([]);
+    const { user, logout, documents, setDocuments, addDocument, token } = useStore();
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchDocs = async () => {
             try {
-                const token = localStorage.getItem('token');
                 const res = await axios.get('http://localhost:5000/api/documents', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -22,15 +20,16 @@ const Dashboard = () => {
             }
         };
         if (user) fetchDocs();
-    }, [user]);
+    }, [user, token, setDocuments]);
 
     const createDocument = async () => {
         const id = uuidv4();
+        const newDoc = { _id: id, title: 'Untitled Document' };
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/documents', { id, title: 'Untitled Document' }, {
+            await axios.post('http://localhost:5000/api/documents', { id, title: newDoc.title }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            addDocument(newDoc);
             navigate(`/documents/${id}`);
         } catch (err) {
             console.error(err);

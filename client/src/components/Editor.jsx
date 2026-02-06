@@ -20,7 +20,6 @@ const Editor = () => {
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [docTitle, setDocTitle] = useState('Untitled Document');
 
-    // Check permissions and load title
     useEffect(() => {
         const checkAccess = async () => {
             try {
@@ -45,26 +44,13 @@ const Editor = () => {
     useEffect(() => {
         if (!editorRef.current || !user) return;
 
-        // 1. Init Yjs Doc
         const ydoc = new Y.Doc();
-
-        // 2. Connect to Websocket Provider
-        const provider = new WebsocketProvider(
-            'ws://localhost:5000',
-            `collabwrite-doc-${id}`, // Room name
-            ydoc
-        );
-
-        provider.on('status', event => {
-            setStatus(event.status); // 'connected' or 'disconnected'
-        });
-
-        // 3. Define type
+        const provider = new WebsocketProvider('ws://localhost:5000', `collabwrite-doc-${id}`, ydoc);
+        provider.on('status', event => setStatus(event.status));
         const ytext = ydoc.getText('quill');
 
-        // 4. Init Quill
         const editorContainer = editorRef.current;
-        editorContainer.innerHTML = ''; // Clear previous
+        editorContainer.innerHTML = '';
         const editorElement = document.createElement('div');
         editorContainer.appendChild(editorElement);
 
@@ -75,36 +61,19 @@ const Editor = () => {
                     ['bold', 'italic', 'underline'],
                     ['image', 'code-block']
                 ],
-                history: {
-                    userOnly: true // Yjs handles history
-                }
+                history: { userOnly: true }
             },
             placeholder: 'Start collaborating...',
             theme: 'snow'
         });
 
-        // 5. Bind Yjs to Quill
         const binding = new QuillBinding(ytext, quill, provider.awareness);
+        const userColor = stringToColor(user.username);
+        provider.awareness.setLocalStateField('user', { name: user.username, color: userColor });
 
-        // 6. Set user awareness (Real User Data)
-        const userColor = stringToColor(user.username); // Consistent color
-        provider.awareness.setLocalStateField('user', {
-            name: user.username,
-            color: userColor
-        });
-
-        // 7. Listen for Awareness Changes (Active Users)
         const updateCollaborators = () => {
             const states = provider.awareness.getStates();
-            const activeUsers = [];
-            states.forEach((state, clientId) => {
-                if (state.user) {
-                    activeUsers.push({
-                        clientId,
-                        ...state.user
-                    });
-                }
-            });
+            const activeUsers = Array.from(states.values()).filter(state => state.user).map(state => state.user);
             setCollaborators(activeUsers);
         };
 
@@ -131,45 +100,48 @@ const Editor = () => {
     };
 
     return (
-        <div className="app-container">
-            <div className="editor-container">
-                <div className="status-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
-
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <div className={`status-indicator ${status === 'connected' ? 'status-connected' : 'status-disconnected'}`}>
-                            <div className="status-dot" style={{
-                                display: 'inline-block', width: '10px', height: '10px',
-                                borderRadius: '50%', background: status === 'connected' ? 'green' : 'red', marginRight: '5px'
-                            }} />
+        <div className="flex flex-col h-screen bg-gray-900 text-white">
+            <div className="flex-grow flex flex-col">
+                <div className="flex justify-between items-center p-3 bg-gray-800 border-b border-gray-700">
+                    <div className="flex items-center gap-4">
+                        <div className={`flex items-center gap-2 ${status === 'connected' ? 'text-green-400' : 'text-red-400'}`}>
+                            <span className={`w-3 h-3 rounded-full ${status === 'connected' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                            <span className="text-sm font-medium">{status}</span>
                         </div>
-                        <div style={{ fontWeight: 'bold' }}>{docTitle}</div>
+                        <div className="text-lg font-semibold">{docTitle}</div>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="collaborators-list" style={{ display: 'flex', gap: '5px' }}>
+                    <div className="flex items-center gap-4">
+                        <div className="flex -space-x-2">
                             {collaborators.map(c => (
-                                <div key={c.clientId} title={c.name} style={{
-                                    width: '30px', height: '30px', borderRadius: '50%',
-                                    background: c.color, color: '#fff', display: 'flex',
-                                    alignItems: 'center', justifyContent: 'center', fontSize: '12px',
-                                    border: '2px solid white', boxShadow: '0 0 0 1px #ccc'
-                                }}>
+                                <div key={c.name} title={c.name} className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-gray-900" style={{ backgroundColor: c.color }}>
                                     {c.name.charAt(0).toUpperCase()}
                                 </div>
                             ))}
                         </div>
-                        <button onClick={() => setIsShareOpen(true)} style={{ marginLeft: '10px', padding: '5px 15px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Share</button>
+                        <button onClick={() => setIsShareOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Share</button>
                     </div>
-
                 </div>
-                <div ref={editorRef} className="quill-wrapper" />
+                <div ref={editorRef} className="flex-grow relative quill-wrapper" />
             </div>
-
-            <ShareModal
-                isOpen={isShareOpen}
-                onClose={() => setIsShareOpen(false)}
-                onShare={handleShare}
-            />
+            <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} onShare={handleShare} />
+            <style jsx global>{`
+                .ql-editor {
+                    color: #fff;
+                }
+                .ql-toolbar {
+                    background-color: #1f2937;
+                    border-bottom: 1px solid #374151 !important;
+                }
+                .ql-toolbar .ql-stroke {
+                    stroke: #9ca3af;
+                }
+                .ql-toolbar .ql-fill {
+                    fill: #9ca3af;
+                }
+                .ql-toolbar .ql-picker-label {
+                    color: #9ca3af;
+                }
+            `}</style>
         </div>
     );
 };

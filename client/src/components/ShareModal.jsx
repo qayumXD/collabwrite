@@ -12,25 +12,21 @@ const ShareModal = ({ isOpen, onClose, onShare }) => {
     };
 
     return (
-        <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center',
-            zIndex: 1000
-        }}>
-            <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', minWidth: '300px' }}>
-                <h3>Share Document</h3>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
+                <h3 className="text-2xl font-bold text-white mb-6">Share Document</h3>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <input
                         type="email"
                         placeholder="Enter email to share with"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                         required
-                        style={{ padding: '0.5rem' }}
+                        className="p-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button type="button" onClick={onClose} style={{ padding: '0.5rem' }}>Cancel</button>
-                        <button type="submit" style={{ padding: '0.5rem', background: '#30bced', color: 'white', border: 'none' }}>Share</button>
+                    <div className="flex gap-4 justify-end">
+                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">Cancel</button>
+                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Share</button>
                     </div>
                 </form>
             </div>

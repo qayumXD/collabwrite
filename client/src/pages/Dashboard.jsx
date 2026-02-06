@@ -28,8 +28,6 @@ const Dashboard = () => {
         const id = uuidv4();
         try {
             const token = localStorage.getItem('token');
-            // Assuming we want to persist it immediately or we can just navigate to editor and let editor create it?
-            // Let's create it on server so we have 'owner' set correctly.
             await axios.post('http://localhost:5000/api/documents', { id, title: 'Untitled Document' }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -40,21 +38,21 @@ const Dashboard = () => {
     };
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1>Welcome, {user?.username}</h1>
-                <button onClick={logout} style={{ background: 'red', color: 'white', padding: '0.5rem' }}>Logout</button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold text-white">Welcome, {user?.username}</h1>
+                <button onClick={logout} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Logout</button>
             </div>
 
-            <div style={{ marginTop: '2rem' }}>
-                <button onClick={createDocument} style={{ padding: '0.5rem 1rem', fontSize: '1.1rem' }}>+ Create New Document</button>
+            <div className="mb-8">
+                <button onClick={createDocument} className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 text-lg font-semibold">+ Create New Document</button>
             </div>
 
-            <div style={{ marginTop: '2rem', display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {documents.map(doc => (
-                    <div key={doc._id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px' }}>
-                        <h3 style={{ margin: '0 0 1rem 0' }}>{doc.title || 'Untitled'}</h3>
-                        <Link to={`/documents/${doc._id}`} style={{ display: 'block', marginTop: 'auto' }}>Open</Link>
+                    <div key={doc._id} className="bg-gray-800 rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <h3 className="text-xl font-semibold text-white mb-4">{doc.title || 'Untitled'}</h3>
+                        <Link to={`/documents/${doc._id}`} className="text-blue-400 hover:underline self-start">Open</Link>
                     </div>
                 ))}
             </div>

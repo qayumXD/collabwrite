@@ -83,6 +83,42 @@ CollabWrite/
 └── README.md
 ```
 
+## API Endpoints
+
+### Authentication
+
+*   **`POST /api/auth/register`**
+    *   Description: Registers a new user.
+    *   Request Body: `{ "username": "testuser", "email": "test@example.com", "password": "password123" }`
+    *   Response: `{ "message": "User created" }`
+
+*   **`POST /api/auth/login`**
+    *   Description: Logs in a user.
+    *   Request Body: `{ "email": "test@example.com", "password": "password123" }`
+    *   Response: `{ "token": "...", "user": { "id": "...", "username": "...", "email": "..." } }`
+
+### Documents
+
+*All document routes require a valid JWT in the `Authorization` header.*
+
+*   **`GET /api/documents`**
+    *   Description: Gets all documents for the authenticated user.
+    *   Response: `[ { "_id": "...", "title": "...", "owner": "...", "collaborators": [], "createdAt": "...", "updatedAt": "..." } ]`
+
+*   **`POST /api/documents`**
+    *   Description: Creates a new document.
+    *   Request Body: `{ "id": "...", "title": "Untitled Document" }`
+    *   Response: `{ "_id": "...", "title": "...", "owner": "...", "collaborators": [], "createdAt": "...", "updatedAt": "..." }`
+
+*   **`GET /api/documents/:id`**
+    *   Description: Gets a specific document by ID.
+    *   Response: `{ "_id": "...", "title": "...", "owner": "...", "collaborators": [], "createdAt": "...", "updatedAt": "..." }`
+
+*   **`POST /api/documents/:id/share`**
+    *   Description: Shares a document with another user.
+    *   Request Body: `{ "email": "user@example.com" }`
+    *   Response: `{ "message": "Document shared", "user": { "username": "...", "email": "..." } }`
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
